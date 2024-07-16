@@ -87,18 +87,11 @@ public class EncodingDataService {
 
     @EventListener
     public void createdEncode(CreatedDataEvent event) {
-        var user = new User(
-                event.getUser().id(),
-                encrypt(event.getUser().userDocument()),
-                encrypt(event.getUser().creditCardToken()),
-                event.getUser().value()
-        );
-        repository.save(user);
         var encodingData = new EncodingDataEvent("post",
                 new UserDTO(
                         event.getUser().id(),
-                        event.getUser().userDocument(),
-                        event.getUser().creditCardToken(),
+                        encrypt(event.getUser().userDocument()),
+                        encrypt(event.getUser().creditCardToken()),
                         event.getUser().value()
                 ));
         eventPublisher.publishEvent(encodingData);

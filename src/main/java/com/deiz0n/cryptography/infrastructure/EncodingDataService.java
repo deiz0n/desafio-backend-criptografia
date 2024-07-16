@@ -3,7 +3,7 @@ package com.deiz0n.cryptography.infrastructure;
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
 import com.deiz0n.cryptography.domain.entities.User;
 import com.deiz0n.cryptography.domain.events.*;
-import com.deiz0n.cryptography.domain.exceptions.UserNotFound;
+import com.deiz0n.cryptography.domain.exceptions.UserNotFoundException;
 import com.deiz0n.cryptography.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,7 +80,7 @@ public class EncodingDataService {
                             u.getValue()
                     );
                 })
-                .orElseThrow(() -> new UserNotFound("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         var encodingEvent = new EncodingDataEvent("get", user);
         eventPublisher.publishEvent(encodingEvent);
     }

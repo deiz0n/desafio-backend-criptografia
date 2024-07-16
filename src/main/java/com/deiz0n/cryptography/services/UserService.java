@@ -1,6 +1,7 @@
 package com.deiz0n.cryptography.services;
 
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
+import com.deiz0n.cryptography.domain.entities.User;
 import com.deiz0n.cryptography.domain.events.*;
 import com.deiz0n.cryptography.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,17 @@ public class UserService {
     }
 
     public UserDTO create(UserDTO newData) {
+        var user = repository.save(new User(
+                newData.id(),
+                newData.userDocument(),
+                newData.creditCardToken(),
+                newData.value()
+        ));
+
         var event = new CreatedDataEvent(this, newData);
+
         eventPublisher.publishEvent(event);
+
         return new UserDTO(
                 userEncoded.id(),
                 userEncoded.userDocument(),

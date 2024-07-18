@@ -3,6 +3,7 @@ package com.deiz0n.cryptography.controllers;
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
 import com.deiz0n.cryptography.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/users")
@@ -21,13 +23,17 @@ public class UserController {
     @GetMapping
     public ResponseEntity<List<UserDTO>> getUsers() {
         var users = service.getAll();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(15, TimeUnit.SECONDS))
+                .body(users);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUsers(@PathVariable Long id) {
         var user = service.getById(id);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(15, TimeUnit.SECONDS))
+                .body(user);
     }
 
     @Transactional
@@ -39,7 +45,9 @@ public class UserController {
                 .path("{id}")
                 .buildAndExpand(user.id())
                 .toUri();
-        return ResponseEntity.created(uri).body(user);
+        return ResponseEntity.created(uri)
+                .cacheControl(CacheControl.maxAge(15, TimeUnit.SECONDS))
+                .body(user);
     }
 
     @Transactional

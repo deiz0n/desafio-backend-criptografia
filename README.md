@@ -13,4 +13,4 @@ Implementar a criptografia em um serviço de forma transparente para a API e par
 Para tal problemática, desenvolvi um CRUD simples em Java e Spring. Além disso, optei pelo H2 como banco de dados. De forma geral, a aplicação aplica o conceito de programação orientada a eventos, na qual os eventos são responsáveis pela comunicação entre os microservices, implementando o padrão **Publisher-Subscriber**. Para tal feito, utilizei os eventos genéricos do próprio Spring. Os principais componentes da aplicação são o **EncodingDataService**, responsável pela implementação do algoritmo **PBKDF2**, realizando a criptografia e descriptografia dos dados, e o **UserService**, responsável pela implementação dos métodos de CRUD.
 
 ## `🧩` Diagrama de classes:
-![Diagrama de classes](https://github.com/deiz0n/desafio-backend-criptografia/blob/main/class-diagram.png)
+![Diagrama de classes](https://github.com/deiz0n/desafio-backend-criptografia/blob/main/cryptography.png)

@@ -1,7 +1,9 @@
 package com.deiz0n.cryptography.services;
 
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
+import com.deiz0n.cryptography.domain.entities.User;
 import com.deiz0n.cryptography.domain.events.*;
+import com.deiz0n.cryptography.domain.exceptions.UserNotFoundException;
 import com.deiz0n.cryptography.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -24,31 +27,47 @@ public class UserService {
     private UserDTO userEncoded;
 
     public List<UserDTO> getAll() {
-       var event = new GetListOfDataEvent(this);
+       var event = new GetListOfDataEvent(this,
+               repository.findAll()
+                       .stream()
+                       .map(user -> new UserDTO(
+                               user.getId(),
+                               user.getUserDocument(),
+                               user.getCreditCardToken(),
+                               user.getValue()))
+                       .collect(Collectors.toList()));
+
        eventPublisher.publishEvent(event);
-       return new ArrayList<>(getListOfUserEncoded);
+       return getListOfUserEncoded;
     }
 
     public UserDTO getById(Long id){
-        var event = new GetDataEvent(id);
-        eventPublisher.publishEvent(event);
-        return new UserDTO(
-                getUserEncoded.id(),
-                getUserEncoded.userDocument(),
-                getUserEncoded.creditCardToken(),
-                getUserEncoded.value()
+        var event = new GetDataEvent(this,
+                repository.findById(id)
+                        .map(user -> new UserDTO(
+                                user.getId(),
+                                user.getUserDocument(),
+                                user.getCreditCardToken(),
+                                user.getValue()
+                        ))
+                        .orElseThrow(() -> new UserNotFoundException("User not found"))
         );
+
+        eventPublisher.publishEvent(event);
+        return getUserEncoded;
     }
 
     public UserDTO create(UserDTO newData) {
         var event = new CreatedDataEvent(this, newData);
         eventPublisher.publishEvent(event);
-        return new UserDTO(
+
+        repository.save(new User(
                 userEncoded.id(),
                 userEncoded.userDocument(),
                 userEncoded.creditCardToken(),
                 userEncoded.value()
-        );
+        ));
+        return userEncoded;
     }
 
     public void delete(Long id) {

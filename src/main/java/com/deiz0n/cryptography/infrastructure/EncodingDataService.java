@@ -1,10 +1,7 @@
 package com.deiz0n.cryptography.infrastructure;
 
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
-import com.deiz0n.cryptography.domain.entities.User;
 import com.deiz0n.cryptography.domain.events.*;
-import com.deiz0n.cryptography.domain.exceptions.UserNotFoundException;
-import com.deiz0n.cryptography.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,8 +19,6 @@ public class EncodingDataService {
     @Value("${api.algorithm.secret.key}")
     private String key;
 
-    @Autowired
-    UserRepository repository;
     @Autowired
     ApplicationEventPublisher eventPublisher;
 
@@ -53,17 +48,15 @@ public class EncodingDataService {
 
     @EventListener
     public void encodeList(GetListOfDataEvent event) {
-        var encodingEvent = new EncodingListOfDataEvent(event.getSource(),
-                repository.findAll()
+        var encodingEvent = new EncodingListOfDataEvent(this,
+                event.getUsers()
                         .stream()
-                        .map(user -> {
-                            return new UserDTO(
-                                    user.getId(),
-                                    decrypt(user.getUserDocument()),
-                                    decrypt(user.getCreditCardToken()),
-                                    user.getValue()
-                            );
-                        })
+                        .map(user -> new UserDTO(
+                                user.id(),
+                                decrypt(user.userDocument()),
+                                decrypt(user.creditCardToken()),
+                                user.value()
+                        ))
                         .toList()
         );
         eventPublisher.publishEvent(encodingEvent);
@@ -71,35 +64,24 @@ public class EncodingDataService {
 
     @EventListener
     public void encode(GetDataEvent event) {
-        var user = repository.findById((Long) event.getSource())
-                .map(u -> {
-                    return new UserDTO(
-                            u.getId(),
-                            decrypt(u.getUserDocument()),
-                            decrypt(u.getCreditCardToken()),
-                            u.getValue()
-                    );
-                })
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        var encodingEvent = new EncodingDataEvent("get", user);
+        var encodingEvent = new EncodingDataEvent("get",
+                new UserDTO(
+                        event.getUser().id(),
+                        decrypt(event.getUser().creditCardToken()),
+                        decrypt(event.getUser().userDocument()),
+                        event.getUser().value()
+                ));
         eventPublisher.publishEvent(encodingEvent);
     }
 
     @EventListener
     public void createdEncode(CreatedDataEvent event) {
-        var user = new User(
-                event.getUser().id(),
-                encrypt(event.getUser().userDocument()),
-                encrypt(event.getUser().creditCardToken()),
-                event.getUser().value()
-        );
-        repository.save(user);
         var encodingData = new EncodingDataEvent("post",
                 new UserDTO(
-                        null,
-                        user.getUserDocument(),
-                        user.getCreditCardToken(),
-                        user.getValue()
+                        event.getUser().id(),
+                        encrypt(event.getUser().userDocument()),
+                        encrypt(event.getUser().creditCardToken()),
+                        event.getUser().value()
                 ));
         eventPublisher.publishEvent(encodingData);
     }

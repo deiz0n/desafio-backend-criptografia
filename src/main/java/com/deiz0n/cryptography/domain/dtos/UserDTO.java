@@ -10,5 +10,5 @@ public record UserDTO(
         String userDocument,
         @JsonProperty(value = "credit_card_token")
         String creditCardToken,
-        Long value) {
-}
+        Long value
+) {}

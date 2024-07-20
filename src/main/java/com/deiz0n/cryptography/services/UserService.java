@@ -22,8 +22,8 @@ public class UserService {
     @Autowired
     ApplicationEventPublisher eventPublisher;
 
-    private UserDTO getUserEncoded;
-    private List<UserDTO> getListOfUserEncoded;
+    private UserDTO getUserDecoded;
+    private List<UserDTO> getListOfUserDecoded;
     private UserDTO userEncoded;
 
     public List<UserDTO> getAll() {
@@ -35,10 +35,11 @@ public class UserService {
                                user.getUserDocument(),
                                user.getCreditCardToken(),
                                user.getValue()))
-                       .collect(Collectors.toList()));
+                       .collect(Collectors.toList())
+       );
 
        eventPublisher.publishEvent(event);
-       return getListOfUserEncoded;
+       return getListOfUserDecoded;
     }
 
     public UserDTO getById(Long id){
@@ -54,7 +55,7 @@ public class UserService {
         );
 
         eventPublisher.publishEvent(event);
-        return getUserEncoded;
+        return getUserDecoded;
     }
 
     public UserDTO create(UserDTO newData) {
@@ -65,8 +66,8 @@ public class UserService {
                 userEncoded.id(),
                 userEncoded.userDocument(),
                 userEncoded.creditCardToken(),
-                userEncoded.value()
-        ));
+                userEncoded.value())
+        );
         return userEncoded;
     }
 
@@ -75,9 +76,9 @@ public class UserService {
     }
 
     @EventListener
-    private void setGetListOfUserEncoded(EncodingListOfDataEvent event) {
+    private void setGetListOfUserDecoded(EncodingListOfDataEvent event) {
         try {
-            getListOfUserEncoded = new ArrayList<>(event.getUsers());
+            getListOfUserDecoded = new ArrayList<>(event.getUsers());
         } catch (Exception e) {
             throw new RuntimeException("Erro ao capturar os dados", e);
         }
@@ -85,7 +86,7 @@ public class UserService {
 
     @EventListener(condition = "event.source == 'get'")
     private void setGetUserEncoded(EncodingDataEvent event) {
-        getUserEncoded = new UserDTO(
+        getUserDecoded = new UserDTO(
                 event.getUser().id(),
                 event.getUser().userDocument(),
                 event.getUser().creditCardToken(),

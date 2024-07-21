@@ -7,11 +7,11 @@ import org.springframework.context.ApplicationEvent;
 import java.util.List;
 
 @Getter
-public class EncodingListOfDataEvent extends ApplicationEvent {
+public class DecodingListOfDataEvent extends ApplicationEvent {
 
-    private final List<UserDTO> users;
+    private List<UserDTO> users;
 
-    public EncodingListOfDataEvent(Object source, List<UserDTO> users) {
+    public DecodingListOfDataEvent(Object source, List<UserDTO> users) {
         super(source);
         this.users = users;
     }

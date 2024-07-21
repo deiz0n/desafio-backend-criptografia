@@ -76,7 +76,7 @@ public class UserService {
     }
 
     @EventListener
-    private void setGetListOfUserDecoded(EncodingListOfDataEvent event) {
+    private void setGetListOfUserDecoded(DecodingListOfDataEvent event) {
         try {
             getListOfUserDecoded = new ArrayList<>(event.getUsers());
         } catch (Exception e) {
@@ -85,7 +85,7 @@ public class UserService {
     }
 
     @EventListener(condition = "event.source == 'get'")
-    private void setGetUserEncoded(EncodingDataEvent event) {
+    private void setGetUserEncoded(DecodingDataEvent event) {
         getUserDecoded = new UserDTO(
                 event.getUser().id(),
                 event.getUser().userDocument(),
@@ -95,7 +95,7 @@ public class UserService {
     }
 
     @EventListener(condition = "event.source == 'post'")
-    private void setUserEncoded(EncodingDataEvent event) {
+    private void setUserEncoded(DecodingDataEvent event) {
         userEncoded = new UserDTO(
                 event.getUser().id(),
                 event.getUser().userDocument(),

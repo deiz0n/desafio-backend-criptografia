@@ -48,7 +48,7 @@ public class EncodingDataService {
 
     @EventListener
     public void encodeList(GetListOfDataEvent event) {
-        var encodingEvent = new EncodingListOfDataEvent(this,
+        var encodingEvent = new DecodingListOfDataEvent(this,
                 event.getUsers()
                         .stream()
                         .map(user -> new UserDTO(
@@ -64,7 +64,7 @@ public class EncodingDataService {
 
     @EventListener
     public void encode(GetDataEvent event) {
-        var encodingEvent = new EncodingDataEvent("get",
+        var encodingEvent = new DecodingDataEvent("get",
                 new UserDTO(
                         event.getUser().id(),
                         decrypt(event.getUser().creditCardToken()),
@@ -76,7 +76,7 @@ public class EncodingDataService {
 
     @EventListener
     public void createdEncode(CreatedDataEvent event) {
-        var encodingData = new EncodingDataEvent("post",
+        var encodingData = new DecodingDataEvent("post",
                 new UserDTO(
                         event.getUser().id(),
                         encrypt(event.getUser().userDocument()),

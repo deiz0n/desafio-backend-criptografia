@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  cripto:
+    build: .
+    image: cripto
+    environment:
+      KEY: hXHsbw8VC7ukQn5i8MUgZKSfVOff2c7j
+      DB_URL: jdbc:h2:mem:cryptography;INIT=CREATE SCHEMA IF NOT EXISTS cryptography
+      USER: sa
+      PASSWORD: 123
+    ports:
+      - "8080:8080"
+    command: ["java", "-jar", "cripto.jar"]

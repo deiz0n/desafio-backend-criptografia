@@ -2,7 +2,9 @@ package com.deiz0n.cryptography.domain.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 
+@Builder
 public record UserDTO(
         @JsonInclude(JsonInclude.Include.NON_NULL)
         Long id,

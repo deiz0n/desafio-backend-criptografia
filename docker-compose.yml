@@ -5,10 +5,10 @@ services:
     build: .
     image: cripto
     environment:
-      KEY: hXHsbw8VC7ukQn5i8MUgZKSfVOff2c7j
-      DB_URL: jdbc:h2:mem:cryptography;INIT=CREATE SCHEMA IF NOT EXISTS cryptography
-      USER: sa
-      PASSWORD: 123
+      KEY: ${KEY}
+      DB_URL: ${DB_URL}
+      USER: ${DB_USER}
+      PASSWORD: ${DB_PASSWORD}
     ports:
       - "8080:8080"
     command: ["java", "-jar", "cripto.jar"]

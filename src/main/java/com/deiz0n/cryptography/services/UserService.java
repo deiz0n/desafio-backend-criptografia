@@ -1,9 +1,9 @@
 package com.deiz0n.cryptography.services;
 
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
-import com.deiz0n.cryptography.domain.entities.User;
 import com.deiz0n.cryptography.domain.events.*;
 import com.deiz0n.cryptography.domain.exceptions.UserNotFoundException;
+import com.deiz0n.cryptography.domain.mappers.UserMapper;
 import com.deiz0n.cryptography.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,6 +21,8 @@ public class UserService {
     UserRepository repository;
     @Autowired
     ApplicationEventPublisher eventPublisher;
+    @Autowired
+    UserMapper mapper;
 
     private UserDTO getUserDecoded;
     private List<UserDTO> getListOfUserDecoded;
@@ -30,11 +32,7 @@ public class UserService {
        var event = new GetListOfDataEvent(this,
                repository.findAll()
                        .stream()
-                       .map(user -> new UserDTO(
-                               user.getId(),
-                               user.getUserDocument(),
-                               user.getCreditCardToken(),
-                               user.getValue()))
+                       .map(mapper::toDTO)
                        .collect(Collectors.toList())
        );
 
@@ -45,12 +43,7 @@ public class UserService {
     public UserDTO getById(Long id){
         var event = new GetDataEvent(this,
                 repository.findById(id)
-                        .map(user -> new UserDTO(
-                                user.getId(),
-                                user.getUserDocument(),
-                                user.getCreditCardToken(),
-                                user.getValue()
-                        ))
+                        .map(mapper::toDTO)
                         .orElseThrow(() -> new UserNotFoundException("User not found"))
         );
 
@@ -62,12 +55,7 @@ public class UserService {
         var event = new CreatedDataEvent(this, newData);
         eventPublisher.publishEvent(event);
 
-        repository.save(new User(
-                userEncoded.id(),
-                userEncoded.userDocument(),
-                userEncoded.creditCardToken(),
-                userEncoded.value())
-        );
+        repository.save(mapper.toEntity(userEncoded));
         return userEncoded;
     }
 
@@ -86,22 +74,21 @@ public class UserService {
 
     @EventListener(condition = "event.source == 'get'")
     private void setGetUserEncoded(DecodingDataEvent event) {
-        getUserDecoded = new UserDTO(
-                event.getUser().id(),
-                event.getUser().userDocument(),
-                event.getUser().creditCardToken(),
-                event.getUser().value()
-        );
+        getUserDecoded = UserDTO.builder()
+                .id(event.getUser().id())
+                .userDocument(event.getUser().userDocument())
+                .creditCardToken(event.getUser().creditCardToken())
+                .value(event.getUser().value())
+                .build();
     }
 
     @EventListener(condition = "event.source == 'post'")
     private void setUserEncoded(DecodingDataEvent event) {
-        userEncoded = new UserDTO(
-                event.getUser().id(),
-                event.getUser().userDocument(),
-                event.getUser().creditCardToken(),
-                event.getUser().value()
-        );
+        userEncoded = UserDTO.builder()
+                .id(event.getUser().id())
+                .userDocument(event.getUser().userDocument())
+                .creditCardToken(event.getUser().creditCardToken())
+                .value(event.getUser().value())
+                .build();
     }
-
 }

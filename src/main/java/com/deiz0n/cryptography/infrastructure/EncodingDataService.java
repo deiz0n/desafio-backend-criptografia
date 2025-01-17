@@ -51,12 +51,13 @@ public class EncodingDataService {
         var encodingEvent = new DecodingListOfDataEvent(this,
                 event.getUsers()
                         .stream()
-                        .map(user -> new UserDTO(
-                                user.id(),
-                                decrypt(user.userDocument()),
-                                decrypt(user.creditCardToken()),
-                                user.value()
-                        ))
+                        .map(user -> UserDTO.builder()
+                                .id(user.id())
+                                .userDocument(decrypt(user.userDocument()))
+                                .creditCardToken(decrypt(user.creditCardToken()))
+                                .value(user.value())
+                                .build()
+                        )
                         .toList()
         );
         eventPublisher.publishEvent(encodingEvent);
@@ -65,24 +66,24 @@ public class EncodingDataService {
     @EventListener
     public void encode(GetDataEvent event) {
         var encodingEvent = new DecodingDataEvent("get",
-                new UserDTO(
-                        event.getUser().id(),
-                        decrypt(event.getUser().creditCardToken()),
-                        decrypt(event.getUser().userDocument()),
-                        event.getUser().value()
-                ));
+                UserDTO.builder()
+                        .id(event.getUser().id())
+                        .userDocument(decrypt(event.getUser().userDocument()))
+                        .creditCardToken(decrypt(event.getUser().creditCardToken()))
+                        .value(event.getUser().value())
+                        .build());
         eventPublisher.publishEvent(encodingEvent);
     }
 
     @EventListener
     public void createdEncode(CreatedDataEvent event) {
         var encodingData = new DecodingDataEvent("post",
-                new UserDTO(
-                        event.getUser().id(),
-                        encrypt(event.getUser().userDocument()),
-                        encrypt(event.getUser().creditCardToken()),
-                        event.getUser().value()
-                ));
+                UserDTO.builder()
+                        .id(event.getUser().id())
+                        .userDocument(encrypt(event.getUser().userDocument()))
+                        .creditCardToken(encrypt(event.getUser().creditCardToken()))
+                        .value(event.getUser().value())
+                        .build());
         eventPublisher.publishEvent(encodingData);
     }
 

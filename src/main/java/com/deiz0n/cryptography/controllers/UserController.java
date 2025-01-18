@@ -2,6 +2,7 @@ package com.deiz0n.cryptography.controllers;
 
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
 import com.deiz0n.cryptography.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +39,7 @@ public class UserController {
 
     @Transactional
     @PostMapping("/create")
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO request) {
+    public ResponseEntity<UserDTO> createUser(@RequestBody @Valid UserDTO request) {
         var user = service.create(request);
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequest()

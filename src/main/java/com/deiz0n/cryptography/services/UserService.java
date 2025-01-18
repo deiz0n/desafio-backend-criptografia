@@ -1,18 +1,16 @@
 package com.deiz0n.cryptography.services;
 
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
-import com.deiz0n.cryptography.domain.events.*;
+import com.deiz0n.cryptography.domain.entities.User;
 import com.deiz0n.cryptography.domain.exceptions.UserNotFoundException;
 import com.deiz0n.cryptography.domain.mappers.UserMapper;
+import com.deiz0n.cryptography.infrastructure.EncryptionComponent;
 import com.deiz0n.cryptography.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -23,72 +21,54 @@ public class UserService {
     ApplicationEventPublisher eventPublisher;
     @Autowired
     UserMapper mapper;
+    @Autowired
+    EncryptionComponent encryption;
 
-    private UserDTO getUserDecoded;
-    private List<UserDTO> getListOfUserDecoded;
-    private UserDTO userEncoded;
-
-    public List<UserDTO> getAll() {
-       var event = new GetListOfDataEvent(this,
-               repository.findAll()
-                       .stream()
-                       .map(mapper::toDTO)
-                       .collect(Collectors.toList())
-       );
-
-       eventPublisher.publishEvent(event);
-       return getListOfUserDecoded;
+    public final List<UserDTO> getAll() {
+       return repository.findAll()
+                           .stream()
+                           .map(user -> UserDTO.builder()
+                                   .id(user.getId())
+                                   .userDocument(encryption.decrypt(user.getUserDocument()))
+                                   .creditCardToken(encryption.decrypt(user.getCreditCardToken()))
+                                   .value(user.getValue())
+                                   .build()
+                           )
+                           .toList();
     }
 
     public UserDTO getById(Long id){
-        var event = new GetDataEvent(this,
-                repository.findById(id)
-                        .map(mapper::toDTO)
-                        .orElseThrow(() -> new UserNotFoundException("User not found"))
-        );
-
-        eventPublisher.publishEvent(event);
-        return getUserDecoded;
+        return repository.findById(id)
+                        .map(user -> UserDTO.builder()
+                                .id(user.getId())
+                                .userDocument(encryption.decrypt(user.getUserDocument()))
+                                .creditCardToken(encryption.decrypt(user.getCreditCardToken()))
+                                .value(user.getValue())
+                                .build()
+                        )
+                        .orElseThrow(
+                                () -> new UserNotFoundException("User not found")
+                        );
     }
 
     public UserDTO create(UserDTO newData) {
-        var event = new CreatedDataEvent(this, newData);
-        eventPublisher.publishEvent(event);
+        var user = User.builder()
+                .userDocument(encryption.encrypt(newData.userDocument()))
+                .creditCardToken(encryption.encrypt(newData.creditCardToken()))
+                .value(newData.value())
+                .build();
 
-        repository.save(mapper.toEntity(userEncoded));
-        return userEncoded;
+        repository.save(user);
+
+        return UserDTO.builder()
+                .id(user.getId())
+                .userDocument(user.getUserDocument())
+                .creditCardToken(user.getCreditCardToken())
+                .value(user.getValue())
+                .build();
     }
 
     public void delete(Long id) {
         repository.deleteById(id);
-    }
-
-    @EventListener
-    private void setGetListOfUserDecoded(DecodingListOfDataEvent event) {
-        try {
-            getListOfUserDecoded = new ArrayList<>(event.getUsers());
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao capturar os dados", e);
-        }
-    }
-
-    @EventListener(condition = "event.source == 'get'")
-    private void setGetUserEncoded(DecodingDataEvent event) {
-        getUserDecoded = UserDTO.builder()
-                .id(event.getUser().id())
-                .userDocument(event.getUser().userDocument())
-                .creditCardToken(event.getUser().creditCardToken())
-                .value(event.getUser().value())
-                .build();
-    }
-
-    @EventListener(condition = "event.source == 'post'")
-    private void setUserEncoded(DecodingDataEvent event) {
-        userEncoded = UserDTO.builder()
-                .id(event.getUser().id())
-                .userDocument(event.getUser().userDocument())
-                .creditCardToken(event.getUser().creditCardToken())
-                .value(event.getUser().value())
-                .build();
     }
 }

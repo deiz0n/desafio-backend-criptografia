@@ -2,7 +2,6 @@ version: "3.9"
 
 services:
   cripto:
-    build: .
     image: cripto
     environment:
       KEY: ${KEY}

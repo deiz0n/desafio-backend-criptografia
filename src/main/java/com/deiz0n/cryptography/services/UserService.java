@@ -2,6 +2,7 @@ package com.deiz0n.cryptography.services;
 
 import com.deiz0n.cryptography.domain.dtos.UserDTO;
 import com.deiz0n.cryptography.domain.entities.User;
+import com.deiz0n.cryptography.domain.exceptions.UserAlreadyRegisteredException;
 import com.deiz0n.cryptography.domain.exceptions.UserNotFoundException;
 import com.deiz0n.cryptography.domain.mappers.UserMapper;
 import com.deiz0n.cryptography.infrastructure.EncryptionComponent;
@@ -52,6 +53,8 @@ public class UserService {
     }
 
     public UserDTO create(UserDTO newData) {
+        isRegistered(newData);
+
         var user = User.builder()
                 .userDocument(encryption.encrypt(newData.userDocument()))
                 .creditCardToken(encryption.encrypt(newData.creditCardToken()))
@@ -70,5 +73,12 @@ public class UserService {
 
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    private void isRegistered(UserDTO user) {
+        if (repository.findByUserDocument(encryption.encrypt(user.userDocument())).isPresent())
+            throw new UserAlreadyRegisteredException("User already registered with this User Document");
+        if (repository.findByUserDocument(encryption.encrypt(user.creditCardToken())).isPresent())
+            throw new UserAlreadyRegisteredException("User already registered with this Credit Card Token");
     }
 }
